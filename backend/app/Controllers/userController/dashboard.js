@@ -28,15 +28,25 @@ exports.getAllUser = catchAsync(async (req, res) => {
 });
 
 exports.getTableData = catchAsync(async (req, res) => {
-  const { pageNo, limit } = req.query;
-  const start = (pageNo - 1) * limit;
-  const end = start + limit - 1;
-  const keys = await getAllUsers();
+  console.log("getTableData");
+  // const { pageNo, limit } = req.query;
+  // const start = (pageNo - 1) * limit;
+  // const end = start + limit - 1;
+  // const keys = await getAllUsers();
   const data = [];
-  for (let i = start; i <= end; i++) {
-    const key = keys[i];
-    const value = await redisClient.hget("users", key);
-    data.push({ key, value });
-  }
+  // for (let i = 1; i <= 100; i++) {
+  //   const rowData = {};
+  //   let data = await redisClient.hget(`row:${i}`, (err, reply) => {
+  //     if (err) {
+  //       console.log(err);
+  //     }
+  //     data.push(reply);
+  //   });
+  // client.hset(`row:${i}`, rowData, (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //   }
+  // });
+  // }
   sendResponse(res, { data }, appConstant.GETALLUSER);
 });

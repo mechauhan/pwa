@@ -1,8 +1,12 @@
 const redis = require("redis");
 
 const client = redis.createClient({
-  port: 6379,
-  host: "localhost",
+  username: "default",
+  password: "7YvRB7aDLlZVbA0QJCvPglT0GdOJEjPE",
+  socket: {
+    host: "redis-14491.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+    port: 14491,
+  },
 });
 
 client.on("connect", async () => {
@@ -31,8 +35,8 @@ client.on("connect", async () => {
     //     console.log(err);
     //   }
     // });
-    await client.set('bike:1', 'Process 134');
-    const value = await client.get('bike:1');
+    await client.set("bike:1", "Process 134");
+    const value = await client.get("bike:1");
     console.log(value);
   } catch (error) {
     console.log(error);

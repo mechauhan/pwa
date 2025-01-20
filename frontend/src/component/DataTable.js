@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,37 +9,37 @@ import {
   Paper,
   TablePagination,
   TextField,
-} from '@mui/material';
+} from "@mui/material";
+import axios from "axios";
 
 const DataTable = () => {
   const [data, setData] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Fetch data from your API
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch('http://localhost:3000/data');
-      const result = await response.json();
-      setData(result.rows); // Assuming your API returns data in a "rows" array
-    };
-
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/data', {
-        params: {
-          page,  // Query parameter for page
-          limit, // Query parameter for limit
-          search // Query parameter for search
-        },
-      });
-      setData(response.data.data); // Assuming the API returns a "data" property
+      const response = await axios.get(
+        "http://localhost:4000/user/dashboard/table",
+        {
+          //   params: {
+          //     page, // Query parameter for page
+          //     limit: 10, // Query parameter for limit
+          //     search, // Query parameter for search
+          //   },
+        }
+      );
+      console.log("response", response);
+
+      //   setData(response.data.data); // Assuming the API returns a "data" property
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
 

@@ -3,7 +3,8 @@ import { useNavigate } from "react-router";
 import Topbar from "../../component/Topbar";
 import axios from "axios";
 import Grid from "@mui/material/Grid";
-
+import DataTable from "../../component/DataTable";
+import SingleBarChart from "../../component/SingleBarChart";
 const Dashboard = () => {
   const [userCount, setUserCount] = useState(null); // Initialize as null to differentiate loading states
   const navigate = useNavigate();
@@ -20,11 +21,14 @@ const Dashboard = () => {
 
   const getAllUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/user/dashboard/users", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Pass token for auth
-        },
-      });
+      const response = await axios.get(
+        "http://localhost:4000/user/dashboard/users",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Pass token for auth
+          },
+        }
+      );
       setUserCount(response.data.data.noOfUsers);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -64,9 +68,12 @@ const Dashboard = () => {
               textAlign: "center",
             }}
           >
-            <h3>Additional Content</h3>
-            <p>Custom data or charts can go here.</p>
+            <h3>AUser Activity Chart</h3>
+            <SingleBarChart />{" "}
           </div>
+        </Grid>
+        <Grid item xs={12}>
+          <DataTable />
         </Grid>
       </Grid>
     </>
