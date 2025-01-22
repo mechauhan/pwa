@@ -76,7 +76,7 @@ const Dashboard = () => {
               textAlign: "center",
             }}
           >
-            <h3>AUser Activity Chart</h3>
+            <h3>User Activity Chart</h3>
             <SingleBarChart />{" "}
           </div>
         </Grid>

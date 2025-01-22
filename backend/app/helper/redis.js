@@ -30,22 +30,6 @@ client.on("error", (err) => console.error("Redis Client Error", err));
         price: 5000,
       },
     ];
-
-    // Store each bicycle as JSON in Redis
-    for (const bicycle of bicycles) {
-      const key = `bicycle:${bicycle.id}`; // Unique key for each JSON object
-      await client.sendCommand([
-        "JSON.SET",
-        key,
-        "$",
-        JSON.stringify(bicycle), // Store as JSON string
-      ]);
-      console.log(`Stored JSON for ${key}`);
-    }
-
-    // Verify one of the JSON objects
-    const result = await client.sendCommand(["JSON.GET", "bicycle:1", "$"]);
-    console.log("JSON for bicycle:1:", JSON.parse(result));
   } catch (error) {
     console.error("Error connecting to Redis:", error);
   } finally {

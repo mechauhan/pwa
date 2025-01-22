@@ -8,9 +8,24 @@ const redisClient = require("../../helper/redis");
 
 // Helper function to get all users from Redis
 const getAllUsers = async () => {
+  let cursor = "0";
+  let totalCount = 0;
   try {
-    const result = await redisClient.sendCommand(["HKEYS", "users"]);
-    return result;
+    do {
+      const response = await redisClient.sendCommand([
+        "SCAN",
+        cursor,
+        "MATCH",
+        "user:*",
+      ]);
+      cursor = response[0];
+      const keys = response[1];
+
+      totalCount += keys.length;
+    } while (cursor !== "0");
+
+    console.log(`Total users: ${totalCount}`);
+    return totalCount;
   } catch (err) {
     throw err;
   }
@@ -82,7 +97,7 @@ exports.getAllUser = catchAsync(async (req, res) => {
   if (!users) {
     return sendMessageResponse(res, appConstant.NOUSERFOUND);
   } else {
-    sendResponse(res, { noOfUsers: users.length }, appConstant.GETALLUSER);
+    sendResponse(res, { noOfUsers: users }, appConstant.GETALLUSER);
   }
 });
 
