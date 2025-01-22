@@ -5,8 +5,10 @@ import axios from "axios";
 import Grid from "@mui/material/Grid";
 import DataTable from "../../component/DataTable";
 import SingleBarChart from "../../component/SingleBarChart";
+import AxiosBase from "../../utils/AxiosBase";
 const Dashboard = () => {
   const [userCount, setUserCount] = useState(null); // Initialize as null to differentiate loading states
+  const [tableData, setTableData] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,19 +18,14 @@ const Dashboard = () => {
       navigate("/login"); // Redirect if no token is present
     } else {
       getAllUsers();
+      getTableData();
     }
   }, []);
 
   const getAllUsers = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:4000/user/dashboard/users",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Pass token for auth
-          },
-        }
-      );
+      const response = await AxiosBase.get("dashboard/users");
+
       setUserCount(response.data.data.noOfUsers);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -36,6 +33,18 @@ const Dashboard = () => {
         localStorage.removeItem("token"); // Clear token on unauthorized
         navigate("/login");
       }
+    }
+  };
+
+  const getTableData = async () => {
+    try {
+      const response = await AxiosBase.get("dashboard/table", {
+        params: { limit: 5 },
+      });
+      console.log(response.data);
+      setTableData(response.data.data);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -73,7 +82,7 @@ const Dashboard = () => {
           </div>
         </Grid>
         <Grid item xs={12}>
-          <DataTable />
+          <DataTable tableData={tableData} />
         </Grid>
       </Grid>
     </>

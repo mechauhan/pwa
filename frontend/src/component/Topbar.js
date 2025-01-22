@@ -29,31 +29,7 @@ export default function Topbar() {
   };
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ display: { xs: "none", sm: "block" } }}
-          >
-            <Button onClick={logout}>Logout</Button>
-          </Typography>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Box sx={{ display: { xs: "flex", md: "none" } }}></Box>
-        </Toolbar>
-      </AppBar>
+      <Button onClick={logout}>Logout</Button>
     </Box>
   );
 }

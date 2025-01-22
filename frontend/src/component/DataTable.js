@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -7,106 +7,63 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination,
-  TextField,
 } from "@mui/material";
-import axios from "axios";
 
-const DataTable = () => {
-  const [data, setData] = useState([]);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  // Fetch data from your API
+const DataTable = ({ tableData }) => {
   useEffect(() => {
-    fetchData();
-  }, []);
+    // console.log(tableData?.data, "inside datatable");
+  }, [tableData]);
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:4000/user/dashboard/table",
-        {
-          //   params: {
-          //     page, // Query parameter for page
-          //     limit: 10, // Query parameter for limit
-          //     search, // Query parameter for search
-          //   },
-        }
-      );
-      console.log("response", response);
-
-      //   setData(response.data.data); // Assuming the API returns a "data" property
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  // Handle page change
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  // Filtered data for search
-  const filteredData = data.filter((row) =>
-    Object.values(row).some((value) =>
-      value.toString().toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  // const columns = Object.keys(data[0] || {});
 
   return (
-    <Paper>
-      <TextField
-        label="Search"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {/* Adjust these columns based on your data */}
-              <TableCell>ID</TableCell>
-              <TableCell>Column 1</TableCell>
-              <TableCell>Column 2</TableCell>
-              <TableCell>Column 3</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.col1}</TableCell>
-                  <TableCell>{row.col2}</TableCell>
-                  <TableCell>{row.col3}</TableCell>
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            {tableData && tableData.data ? (
+              <>
+                {Object.keys(tableData?.data[0]).map((key) => (
+                  <TableCell sx={{ fontWeight: 600 }} key={key}>
+                    {key}
+                  </TableCell>
+                ))}
+              </>
+            ) : (
+              <></>
+            )}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tableData && tableData.data ? (
+            <>
+              {tableData.data.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {Object.keys(row).map((key) => (
+                    <TableCell key={key}>{row[key]}</TableCell>
+                  ))}
                 </TableRow>
               ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 20]}
-        component="div"
-        count={filteredData.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Paper>
+            </>
+          ) : (
+            <></>
+          )}
+          {/* {data.map((row, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {row && typeof row === "object" ? (
+                columns.map((column) => (
+                  <TableCell key={`${rowIndex}-${column}`}>
+                    {row[column] !== undefined ? row[column] : ""}
+                  </TableCell>
+                ))
+              ) : (
+                <TableCell colSpan={columns.length}>Invalid Row</TableCell>
+              )}
+            </TableRow>
+          ))} */}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
-
 export default DataTable;

@@ -7,10 +7,7 @@ require("dotenv").config();
 const { appConstant } = require("./Config/constant/appConstant");
 const routes = require("./Routes");
 require("./helper/redis");
-const redisClient = require("./helper/redis");
-const { addDummyData } = require("./helper/addDummyData");
-
-
+// const redisClient = require("./helper/redis");
 
 const app = express();
 const middleware = [

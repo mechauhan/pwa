@@ -1,53 +1,56 @@
 const redis = require("redis");
 
 const client = redis.createClient({
-  username: "default",
-  password: "7YvRB7aDLlZVbA0QJCvPglT0GdOJEjPE",
+  username: process.env.REDIS_USERNAME,
+  password: process.env.REDIS_PASSWORD,
   socket: {
-    host: "redis-14491.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-    port: 14491,
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
   },
 });
 
-client.on("connect", async () => {
-  console.log("client connected to redis");
-  let isInitialized = await client.get("data_initialized");
-  console.log(isInitialized);
+client.on("error", (err) => console.error("Redis Client Error", err));
 
-  if (isInitialized) {
-    return;
-  }
-  // adding dummy data
-  // for (let i = 1; i <= 20000; i++) {
-  //   const rowData = {};
-  //   for (let j = 1; j <= 150; j++) {
-  //     rowData[`col${j}`] = `value${j}_${i}`;
-  //   }
-  //   client.hset(`row:${i}`, rowData, (err) => {
-  //     if (err) {
-  //       console.log(err);
-  //     }
-  //   });
-  // }
+(async () => {
   try {
-    // client.hset("data_initialized", { status: true }, (err) => {
-    //   if (err) {
-    //     console.log(err);
-    //   }
-    // });
-    await client.set("bike:1", "Process 134");
-    const value = await client.get("bike:1");
-    console.log(value);
-  } catch (error) {
-    console.log(error);
-  }
-});
-client.on("ready", () =>
-  console.log("client connected to redis and ready to use")
-);
-client.on("end", () => console.log("client disconnected from redis"));
-client.on("error", (err) => console.log(err));
+    await client.connect();
+    console.log("Connected to Redis!");
 
-process.on("SIGINT", () => client.quit());
+    const bicycles = [
+      {
+        id: 1,
+        brand: "Trek",
+        model: "Domane SL6",
+        price: 3500,
+      },
+      {
+        id: 2,
+        brand: "Specialized",
+        model: "Tarmac SL7",
+        price: 5000,
+      },
+    ];
+
+    // Store each bicycle as JSON in Redis
+    for (const bicycle of bicycles) {
+      const key = `bicycle:${bicycle.id}`; // Unique key for each JSON object
+      await client.sendCommand([
+        "JSON.SET",
+        key,
+        "$",
+        JSON.stringify(bicycle), // Store as JSON string
+      ]);
+      console.log(`Stored JSON for ${key}`);
+    }
+
+    // Verify one of the JSON objects
+    const result = await client.sendCommand(["JSON.GET", "bicycle:1", "$"]);
+    console.log("JSON for bicycle:1:", JSON.parse(result));
+  } catch (error) {
+    console.error("Error connecting to Redis:", error);
+  } finally {
+    // await client.disconnect();
+  }
+})();
 
 module.exports = client;

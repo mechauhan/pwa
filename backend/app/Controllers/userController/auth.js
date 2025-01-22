@@ -13,32 +13,39 @@ const redisClient = require("../../helper/redis");
 
 // Helper function to get all users from Redis
 const getAllUsers = async () => {
-  return new Promise((resolve, reject) => {
-    redisClient.hkeys("users", (err, keys) => {
-      if (err) return reject(err);
-      resolve(keys);
-    });
-  });
+  try {
+    // Using sendCommand to fetch all keys in the "users" hash
+    const keys = await redisClient.sendCommand(["HKEYS", "users"]);
+    return keys;
+  } catch (err) {
+    throw new Error(err);
+  }
 };
 
 // Helper function to get user from Redis
 const getUser = async (userEmail) => {
-  return new Promise((resolve, reject) => {
-    redisClient.hget("users", userEmail, (err, reply) => {
-      if (err) return reject(err);
-      resolve(reply);
-    });
-  });
+  try {
+    // Using sendCommand to get a specific field from the "users" hash
+    const user = await redisClient.sendCommand(["HGET", "users", userEmail]);
+    return user;
+  } catch (err) {
+    throw new Error(err);
+  }
 };
 
 // Helper function to save user in Redis
 const saveUser = async (username, hashedPassword) => {
-  return new Promise((resolve, reject) => {
-    redisClient.hset("users", username, hashedPassword, (err, reply) => {
-      if (err) return reject(err);
-      resolve(reply);
-    });
-  });
+  try {
+    const result = await redisClient.sendCommand([
+      "HSET",
+      "users",
+      username,
+      hashedPassword,
+    ]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 };
 
 exports.register = catchAsync(async (req, res) => {
@@ -91,5 +98,3 @@ exports.getAllUser = catchAsync(async (req, res) => {
   const users = await getAllUsers();
   sendResponse(res, { users }, appConstant.GETALLUSER);
 });
-
-
