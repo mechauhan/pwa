@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Topbar from "../../component/Topbar";
-import axios from "axios";
 import Grid from "@mui/material/Grid";
 import DataTable from "../../component/DataTable";
 import SingleBarChart from "../../component/SingleBarChart";
@@ -18,7 +17,7 @@ const Dashboard = () => {
       navigate("/login"); // Redirect if no token is present
     } else {
       getAllUsers();
-      getTableData();
+      // getTableData();
     }
   }, []);
 
@@ -36,17 +35,17 @@ const Dashboard = () => {
     }
   };
 
-  const getTableData = async () => {
-    try {
-      const response = await AxiosBase.get("dashboard/table", {
-        params: { limit: 5 },
-      });
-      console.log(response.data);
-      setTableData(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getTableData = async (page = 0, limit = 10) => {
+  //   try {
+  //     const response = await AxiosBase.get("dashboard/table", {
+  //       params: { limit: limit, pageNo: page },
+  //     });
+  //     console.log(response.data);
+  //     setTableData(response.data.data);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   return (
     <>
@@ -81,9 +80,9 @@ const Dashboard = () => {
             <SingleBarChart />{" "}
           </div>
         </Grid>
-        <Grid item xs={12}>
-          <DataTable tableData={tableData} />
-        </Grid>
+        {/* <Grid item xs={12}>
+          <DataTable tableData={tableData} getTableData={getTableData} />
+        </Grid> */}
       </Grid>
     </>
   );

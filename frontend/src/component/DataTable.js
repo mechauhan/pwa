@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,14 +7,39 @@ import {
   TableHead,
   TableRow,
   Paper,
+  TablePagination,
 } from "@mui/material";
 
-const DataTable = ({ tableData }) => {
+const DataTable = ({ tableData, getTableData }) => {
+  const [totalCount, setTotalCount] = useState(0); // Total row count for pagination
+  const [page, setPage] = useState(0); // Current page (0-based)
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
+
   useEffect(() => {
     // console.log(tableData?.data, "inside datatable");
+    console.log("tableData", tableData.total);
+    setTotalCount(tableData.total);
   }, [tableData]);
 
-  // const columns = Object.keys(data[0] || {});
+  useEffect(() => {}, [totalCount]);
+  useEffect(() => {
+    getTableData(page, rowsPerPage);
+  }, [page, rowsPerPage]);
+
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    console.log("as", newPage);
+
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    console.log("event.target.value", event.target.value);
+
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -48,21 +73,19 @@ const DataTable = ({ tableData }) => {
           ) : (
             <></>
           )}
-          {/* {data.map((row, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {row && typeof row === "object" ? (
-                columns.map((column) => (
-                  <TableCell key={`${rowIndex}-${column}`}>
-                    {row[column] !== undefined ? row[column] : ""}
-                  </TableCell>
-                ))
-              ) : (
-                <TableCell colSpan={columns.length}>Invalid Row</TableCell>
-              )}
-            </TableRow>
-          ))} */}
         </TableBody>
       </Table>
+      {tableData && tableData.data && tableData.data.length > 0 && (
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
+      )}
     </TableContainer>
   );
 };

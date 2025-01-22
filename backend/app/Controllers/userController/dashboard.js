@@ -43,6 +43,39 @@ const setAllDummy = async () => {
   }
 };
 
+const countJSONKeys = async () => {
+  try {
+    let cursor = "0"; // Start with the initial cursor value of "0"
+    let totalCount = 0; // Variable to store the total number of keys
+
+    // Loop to iterate over all matching keys using SCAN
+    do {
+      // SCAN to fetch the next batch of keys
+      const [newCursor, keys] = await redisClient.sendCommand([
+        "SCAN",
+        cursor, // Starting cursor (0 in the first iteration)
+        "MATCH",
+        "row:*", // Pattern to match keys (e.g., row:1, row:2, ...)
+        "COUNT",
+        "1000", // Fetch in batches of 1000
+      ]);
+
+      // Increment the total count by the number of keys returned in this batch
+      totalCount += keys.length;
+      cursor = newCursor; // Update the cursor for the next iteration
+
+      // Optionally, log progress every 1000 keys
+      console.log(`Processed ${totalCount} keys...`);
+    } while (cursor !== "0"); // Stop when cursor is "0", indicating the end
+
+    console.log(`Total JSON keys stored: ${totalCount}`);
+    return totalCount;
+  } catch (error) {
+    console.error("Error counting JSON keys:", error);
+    throw error;
+  }
+};
+
 exports.getAllUser = catchAsync(async (req, res) => {
   const users = await getAllUsers();
   console.log(users, "getAllUsers");
@@ -57,10 +90,12 @@ exports.getTableData = catchAsync(async (req, res) => {
   console.log("getTableData");
   const pageNo = parseInt(req.query.pageNo, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
-  const start = (pageNo - 1) * limit;
+  const start = pageNo * limit;
   const end = start + limit - 1;
 
   const keys = [];
+  const count = await countJSONKeys();
+  console.log(count, "count");
   for (let i = start; i <= end; i++) {
     keys.push(`row:${i}`);
   }
@@ -77,7 +112,7 @@ exports.getTableData = catchAsync(async (req, res) => {
   );
   let newdata = data.filter((item) => item != null);
 
-  sendResponse(res, { data: newdata }, appConstant.GETALLUSER);
+  sendResponse(res, { data: newdata, total: count }, appConstant.GETALLUSER);
 });
 
 exports.generateDummyData = catchAsync(async (req, res) => {

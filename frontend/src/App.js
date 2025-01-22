@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import LoginPage from "./modules/login/LoginPage";
 import Dashboard from "./modules/dashboard/Dashboard";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import TablePage from "./modules/table/TablePage";
 function App() {
   return (
     <BrowserRouter>
@@ -13,6 +14,14 @@ function App() {
           element={
             <ProtectedRoute authToken={localStorage.getItem("token")}>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/table"
+          element={
+            <ProtectedRoute authToken={localStorage.getItem("token")}>
+              <TablePage />
             </ProtectedRoute>
           }
         />{" "}
