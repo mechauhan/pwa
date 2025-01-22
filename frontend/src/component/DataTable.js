@@ -17,8 +17,15 @@ const DataTable = ({ tableData, getTableData }) => {
 
   useEffect(() => {
     // console.log(tableData?.data, "inside datatable");
-    console.log("tableData", tableData.total);
+    console.log(
+      "tableData",
+      tableData.total,
+      tableData.pageNo,
+      tableData.limit
+    );
     setTotalCount(tableData.total);
+    setPage(tableData.pageNo);
+    setRowsPerPage(tableData.limit);
   }, [tableData]);
 
   useEffect(() => {}, [totalCount]);

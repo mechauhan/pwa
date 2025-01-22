@@ -5,29 +5,18 @@ const {
 } = require("../../helper/common");
 const { appConstant } = require("../../Config/constant/appConstant");
 const redisClient = require("../../helper/redis");
+const e = require("cors");
 
 // Helper function to get all users from Redis
 const getAllUsers = async () => {
-  let cursor = "0";
-  let totalCount = 0;
   try {
-    do {
-      const response = await redisClient.sendCommand([
-        "SCAN",
-        cursor,
-        "MATCH",
-        "user:*",
-      ]);
-      cursor = response[0];
-      const keys = response[1];
-
-      totalCount += keys.length;
-    } while (cursor !== "0");
+    const keys = await redisClient.sendCommand(["KEYS", "user:*"]);
+    const totalCount = keys.length;
 
     console.log(`Total users: ${totalCount}`);
     return totalCount;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -60,30 +49,10 @@ const setAllDummy = async () => {
 
 const countJSONKeys = async () => {
   try {
-    let cursor = "0"; // Start with the initial cursor value of "0"
-    let totalCount = 0; // Variable to store the total number of keys
+    const keys = await redisClient.sendCommand(["KEYS", "row:*"]);
+    const totalCount = keys.length;
 
-    // Loop to iterate over all matching keys using SCAN
-    do {
-      // SCAN to fetch the next batch of keys
-      const [newCursor, keys] = await redisClient.sendCommand([
-        "SCAN",
-        cursor, // Starting cursor (0 in the first iteration)
-        "MATCH",
-        "row:*", // Pattern to match keys (e.g., row:1, row:2, ...)
-        "COUNT",
-        "1000", // Fetch in batches of 1000
-      ]);
-
-      // Increment the total count by the number of keys returned in this batch
-      totalCount += keys.length;
-      cursor = newCursor; // Update the cursor for the next iteration
-
-      // Optionally, log progress every 1000 keys
-      console.log(`Processed ${totalCount} keys...`);
-    } while (cursor !== "0"); // Stop when cursor is "0", indicating the end
-
-    console.log(`Total JSON keys stored: ${totalCount}`);
+    console.log(`Total table data: ${totalCount}`);
     return totalCount;
   } catch (error) {
     console.error("Error counting JSON keys:", error);
@@ -103,31 +72,73 @@ exports.getAllUser = catchAsync(async (req, res) => {
 
 exports.getTableData = catchAsync(async (req, res) => {
   console.log("getTableData");
-  const pageNo = parseInt(req.query.pageNo, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const start = pageNo * limit;
+
+  const email = req.user.userEmail;
+
+  const refresh = req.query.refresh === "true"; // Check if the request indicates a page refresh
+
+  let pageNo, limit;
+
+  if (refresh) {
+    // Fetch the last accessed page and limit from Redis
+    const lastPageData = await redisClient.sendCommand([
+      "HGET",
+      `user:${email}`,
+      "currentState",
+    ]);
+
+    if (lastPageData) {
+      const parsedData = JSON.parse(lastPageData);
+      pageNo = parsedData.pageNo;
+      limit = parsedData.limit;
+    } else {
+      // Default values if no previous data found
+      pageNo = 1;
+      limit = 10;
+    }
+  } else {
+    // Use provided query params
+    pageNo = parseInt(req.query.pageNo, 10) || 1;
+    limit = parseInt(req.query.limit, 10) || 10;
+
+    // Save the current page and limit in Redis
+    await redisClient.sendCommand([
+      "HSET",
+      `user:${email}`,
+      "currentState",
+      JSON.stringify({ pageNo, limit }),
+    ]);
+  }
+
+  // Pagination logic
+  const start = (pageNo - 1) * limit;
   const end = start + limit - 1;
 
   const keys = [];
   const count = await countJSONKeys();
   console.log(count, "count");
+
   for (let i = start; i <= end; i++) {
     keys.push(`row:${i}`);
   }
+
   let data = await Promise.all(
     keys.map(async (key) => {
       const value = await redisClient.sendCommand(["JSON.GET", key, "$"]);
       if (value) {
         let arr = JSON.parse(value);
-        // console.log(JSON.parse(value), "value");
         return arr[0];
-        // return value ? JSON.parse(value[0]) : null;
       }
     })
   );
+
   let newdata = data.filter((item) => item != null);
 
-  sendResponse(res, { data: newdata, total: count }, appConstant.GETALLUSER);
+  sendResponse(
+    res,
+    { data: newdata, total: count, pageNo, limit },
+    appConstant.GETALLUSER
+  );
 });
 
 exports.generateDummyData = catchAsync(async (req, res) => {

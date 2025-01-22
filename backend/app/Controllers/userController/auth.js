@@ -74,7 +74,14 @@ const updateLoginTime = async (userId) => {
   try {
     const userKey = `user:${userId}`;
     const loginTime = new Date().toISOString();
-    await redisClient.sendCommand(["HSET", userKey, "loginTime", loginTime]);
+    await redisClient.sendCommand([
+      "HSET",
+      userKey,
+      "loginTime",
+      loginTime,
+      "currentState",
+      JSON.stringify({ pageNo: 0, limit: 10 }),
+    ]);
 
     console.log(`Login time for user ${userId} updated successfully.`);
   } catch (error) {

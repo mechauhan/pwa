@@ -7,7 +7,6 @@ import SingleBarChart from "../../component/SingleBarChart";
 import AxiosBase from "../../utils/AxiosBase";
 const Dashboard = () => {
   const [userCount, setUserCount] = useState(null); // Initialize as null to differentiate loading states
-  const [tableData, setTableData] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,18 +33,6 @@ const Dashboard = () => {
       }
     }
   };
-
-  // const getTableData = async (page = 0, limit = 10) => {
-  //   try {
-  //     const response = await AxiosBase.get("dashboard/table", {
-  //       params: { limit: limit, pageNo: page },
-  //     });
-  //     console.log(response.data);
-  //     setTableData(response.data.data);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   return (
     <>

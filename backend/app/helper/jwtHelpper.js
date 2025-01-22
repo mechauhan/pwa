@@ -8,9 +8,7 @@ exports.jwtSign = async (userEmail) => {
     let secretKey = process.env.USER;
 
     return jwt.sign(
-      {
-        userEmail,
-      },
+      userEmail,
       secretKey
     );
   } catch (error) {

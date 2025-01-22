@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 
 const TablePage = () => {
   const [tableData, setTableData] = useState([]);
+  const [refresh, setRefresh] = useState("true");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,8 +23,9 @@ const TablePage = () => {
   const getTableData = async (page = 0, limit = 10) => {
     try {
       const response = await AxiosBase.get("dashboard/table", {
-        params: { limit: limit, pageNo: page },
+        params: { limit: limit, pageNo: page, refresh: refresh },
       });
+      setRefresh("false");
       console.log(response.data);
       setTableData(response.data.data);
     } catch (error) {
