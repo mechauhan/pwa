@@ -38,6 +38,22 @@ const LoginPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(userEmail.trim())) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.trim().length < 6) {
+      setMessage("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (userEmail.trim() === "" || password.trim() === "") {
+      setMessage("Please fill all the fields.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:4000/user/auth/register",
@@ -46,8 +62,12 @@ const LoginPage = () => {
           password,
         }
       );
-      console.log(response);
-
+      console.log(response.data);
+      if (response.data.statusCode === 200) {
+        window.alert("User Registered Successfully");
+        setuserEmail("");
+        setPassword("");
+      }
       // setMessage(response.data.message);
       // localStorage.setItem("token", response.data.token);
     } catch (error) {

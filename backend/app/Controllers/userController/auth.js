@@ -22,29 +22,63 @@ const getAllUsers = async () => {
   }
 };
 
-// Helper function to get user from Redis
-const getUser = async (userEmail) => {
+// Function to get user data along with login time
+const getUserData = async (userId) => {
   try {
-    // Using sendCommand to get a specific field from the "users" hash
-    const user = await redisClient.sendCommand(["HGET", "users", userEmail]);
-    return user;
-  } catch (err) {
-    throw new Error(err);
+    const userKey = `user:${userId}`;
+    const userData = await redisClient.sendCommand(["HGETALL", userKey]);
+    console.log("userData", userData);
+
+    if (userData.length === 0) {
+      console.log("User not found.");
+      return null;
+    }
+    const userObject = {
+      email: userData[1],
+      password: userData[3],
+      loginTime: userData[5],
+    };
+
+    console.log("User data retrieved:", userObject);
+    return userObject;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
   }
 };
 
 // Helper function to save user in Redis
 const saveUser = async (username, hashedPassword) => {
   try {
+    const loginTime = new Date().toISOString();
+    let key = `user:${username}`;
     const result = await redisClient.sendCommand([
       "HSET",
-      "users",
+      key,
+      "email",
       username,
+      "password",
       hashedPassword,
+      "loginTime",
+      loginTime,
+      "currentState",
+      JSON.stringify({ pageNo: 0, limit: 10 }),
     ]);
     return result;
   } catch (err) {
     throw err;
+  }
+};
+
+// Function to update user login time
+const updateLoginTime = async (userId) => {
+  try {
+    const userKey = `user:${userId}`;
+    const loginTime = new Date().toISOString();
+    await redisClient.sendCommand(["HSET", userKey, "loginTime", loginTime]);
+
+    console.log(`Login time for user ${userId} updated successfully.`);
+  } catch (error) {
+    console.error("Error updating login time:", error);
   }
 };
 
@@ -57,7 +91,7 @@ exports.register = catchAsync(async (req, res) => {
   }
   console.log(await getAllUsers(), "getAllUsers");
 
-  let existingUser = await getUser(userEmail);
+  let existingUser = await getUserData(userEmail);
   console.log("existingUser", existingUser);
 
   if (existingUser) {
@@ -77,17 +111,18 @@ exports.login = catchAsync(async (req, res) => {
       .json({ error: "Username and password are required." });
   }
   // Get user from Redis
-  const hashedPassword = await getUser(userEmail);
-  if (!hashedPassword) {
+  const savedUser = await getUserData(userEmail);
+  if (!savedUser.password) {
     return res.status(400).json({ error: "Invalid username or password." });
   }
 
   // Compare passwords
-  const isMatch = await bcrypt.compare(password, hashedPassword);
+  const isMatch = await bcrypt.compare(password, savedUser.password);
   if (!isMatch) {
     return res.status(400).json({ error: "Invalid username or password." });
   }
   // Generate JWT token
+  await updateLoginTime(userEmail);
   const token = await jwtSign({ userEmail });
 
   // res.status(200).json({ message: "Login successful.", token });
